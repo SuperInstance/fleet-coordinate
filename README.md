@@ -135,11 +135,11 @@ This repo integrates three research programs:
 
 | Finding | Source | Contribution |
 |---------|--------|-------------|
-| Zero Holonomy Consensus | FM: holonomy-consensus | 38ms consensus, geometric consistency (ZHC closure, not Byzantine fault tolerance) |
+| Zero Holonomy Consensus | FM: holonomy-consensus | 38ms geometric consistency check (not BFT consensus) |
 | Beam Joint Equilibrium | Oracle1: spline-physics | Newton-Raphson in R⁴⁽ᴺ⁻¹⁾, sheaf H⁰ |
 | Pythagorean48 Encoding | FM + JC1 joint work | 6 bits/vector, zero drift after ∞ hops |
-| H¹ Emergence Detection | JC1-CT Bridge | 127 lines, 100% accuracy vs 62% ML |
-| Laman's Theorem (2V-3) | JC1-CT Bridge | Max neighbors for rigidity = 12 |
+| H¹ Emergence Detection | JC1-CT Bridge | β₁ = E-V+C formula (empirical validation pending — no controlled comparison run) |
+| Laman's Theorem (E=2V-3) | JC1-CT Bridge | Necessary condition for 2D rigidity — sufficiency requires Henneberg construction (not yet proved) |
 | Ricci Flow Constant | JC1-CT Bridge | 1.692 convergence rate ≈ Law 103's 1.7 |
 
 ### The Fleet Coordination Theorem Result
@@ -157,13 +157,15 @@ This repo integrates three research programs:
 
 ## Benchmarks
 
-| Algorithm | Latency | Consensus Type | Implementation |
-|-----------|---------|-------------------|----------------|
-| PBFT | 412ms | 1/3 nodes | Traditional |
-| Raft | 89ms | None (crash only) | Traditional |
-| **ZHC** | **38ms** | **Unlimited** | fleet-coordinate |
-| **Beam Equilibrium** | **2.3ms** | **Unlimited** | fleet-coordinate |
-| **Emergence (H¹)** | **0.8ms** | **N/A** | fleet-coordinate |
+**Note:** ZHC's 38ms is a geometric consistency check on a 5-node mesh — not the latency of a distributed consensus protocol. FLP impossibility applies to async crash fault consensus; ZHC does not circumvent this. The comparison below shows different properties, not equivalent protocols.
+
+| Algorithm | Latency | Property | Implementation |
+|-----------|---------|----------|----------------|
+| PBFT | 412ms | Byzantine fault tolerant consensus (f < n/3) | Traditional |
+| Raft | 89ms | Crash fault tolerant consensus | Traditional |
+| **ZHC** | **38ms** | **Geometric consistency check** | fleet-coordinate |
+| **Beam Equilibrium** | **2.3ms** | **Joint equilibrium (no consensus)** | fleet-coordinate |
+| **Emergence (H¹)** | **0.8ms** | **β₁ = E-V+C computation** | fleet-coordinate |
 
 ---
 
