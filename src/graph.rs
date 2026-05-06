@@ -4,7 +4,7 @@
 //! iff it has exactly 2V-3 edges and every subgraph with v' vertices has
 //! at most 2v'-3 edges.
 //!
-//! Key corollary: Max neighbors per vertex = 12 (for V ≥ 3).
+//! Key caveat: Laman's theorem establishes the edge count condition (E=2V-3 for generic rigidity in 2D) and the subgraph condition (every subgraph has at most 2v'-3 edges), but does NOT place an upper bound on vertex degree. A Laman graph can have vertices of arbitrarily high degree.
 //!
 //! This maps directly to fleet coordination:
 //! - Vertices = agents

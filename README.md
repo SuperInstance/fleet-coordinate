@@ -142,16 +142,16 @@ This repo integrates three research programs:
 | Laman's Theorem (2V-3) | JC1-CT Bridge | Max neighbors for rigidity = 12 |
 | Ricci Flow Constant | JC1-CT Bridge | 1.692 convergence rate ≈ Law 103's 1.7 |
 
-### The Synthesis Theorem
+### The Fleet Coordination Theorem Result
 
-**If the fleet constraint graph has Laman rigidity (2V-3 edges, no over-constrained cycles), then:**
+**If the fleet constraint graph has Laman-rigid topology (2V-3 edges, no over-constrained cycles), then:**
 
-1. **ZHC converges** — because the constraint graph is generically rigid, every gradient field is conservative
-2. **Joint equilibrium exists** — because H⁰ of the segment sheaf is non-empty for 3+ pinned segments
-3. **Emergence is detectable** — because H¹ ≠ 0 iff there are independent constraint cycles
-4. **Trust topology is bounded** — because the 48-direction codebook is complete for V ≤ 12 neighbors
+1. **ZHC convergence** — the constraint graph being generically rigid means gradient fields are conservative (conditions apply)
+2. **Joint equilibrium** — H⁰ of the segment sheaf is non-empty for 3+ pinned segments (sufficient conditions under review)
+3. **Emergence detectable** — H¹ ≠ 0 iff there are independent constraint cycles (proved)
+4. **Trust topology bounded** — the 48-direction codebook completeness depends on vertex degree bounds
 
-**In other words:** A fleet with Laman-rigid constraint topology is provably self-coordinating without voting.
+**Caveats:** Laman's theorem establishes necessary conditions (E=2V-3) but sufficiency requires Henneberg reducibility proof. The "provably self-coordinating" claim requires completing the Henneberg construction sequence. The fleet coordination theorem result is contingent on these proofs being completed.
 
 ---
 
@@ -196,6 +196,46 @@ pythagorean48-encoding = "0.1.0"  # When published
 [dev-dependencies]
 criterion = "0.5"
 ```
+
+---
+
+## Mathematical Status
+
+**⚠️ READ BEFORE USING IN PRODUCTION CODE ⚠️**
+
+This document tracks what is mathematically **proved** vs what is **asserted**.
+
+### PROVED Results
+
+| Theorem | Status | Conditions |
+|---------|--------|------------|
+| `β₁ = E - V + C` | ✅ PROVED | None — holds for all graphs |
+| `E = 2V - 3` necessary condition | ✅ PROVED | 2D, generic position, connected |
+| Pythagorean48 zero-drift | ✅ PROVED | Group theory of Z/48Z |
+
+### ASSERTED Results (Assumed, Not Proved)
+
+| Theorem | Status | Conditions | Reference |
+|---------|--------|------------|-----------|
+| Laman sufficiency (Henneberg reducible) | ⚠️ ASSERTED | 2D, generic position | ROADMAP-02 B1 |
+| ZHC flatness geometric interpretation | ⚠️ ASSERTED | 2D, generic position | ROADMAP-02 B2 |
+| H¹ convergence bound | ⚠️ ASSERTED | Connected, positive weights | ROADMAP-02 B3 |
+| Emergence threshold (β₁ > V-2) | ⚠️ ASSERTED | Connected graphs only | ROADMAP-02 B5 |
+
+### Proof Roadmap
+
+See [ROADMAP-02-proofs.md](roadmaps/ROADMAP-02-proofs.md) for:
+- Full proof specifications
+- Priority ordering (Pythagorean48 zero-drift first, then Laman sufficiency)
+- Formal notation reference
+- What each proof requires
+
+### Code Condition Notes
+
+- **2D only:** Fleet-coordinate assumes planar geometry. 3D rigidity requires `E = 3V - 6`.
+- **Generic position:** No three agents collinear, no four concyclic. Accidents cause extra constraints.
+- **Connected graph:** The emergence threshold `β₁ > V - 2` requires connectivity. Disconnected fleets need component-wise analysis.
+- **V ≥ 3:** Small graphs (V < 3) are trivially rigid and handled separately in the code.
 
 ---
 
