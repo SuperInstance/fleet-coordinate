@@ -243,3 +243,74 @@ mod tests {
         assert!(EmergenceDetector::preliminary_screen(50, 200)); // >97 (upper Laman) but <50*49/4=612
     }
 }
+
+// === Zeroclaw Confidence Aggregation Integration (2026-05-06) ===
+// See: /home/ubuntu/.openclaw/workspace/research/zeroclaw-confidence-synthesis.md
+
+/// Empirical confidence signals layered beneath structural H¹ detection
+/// Combined: structural (β₁) + behavioral (SNR/PER/latency/variance)
+/// Formula: 0.4×SNR + 0.3×PER + 0.2×latency + 0.1×variance (normalized 0-1)
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct ConfidenceSignals {
+    pub snr_db: f64,              // Signal-to-noise ratio (threshold: 10dB)
+    pub packet_error_rate: f64,   // PER (threshold: 1%)
+    pub latency_ms: f64,          // Observation latency
+    pub signal_variance: f64,     // Variance in recent observations
+}
+
+impl ConfidenceSignals {
+    /// Normalize each signal to [0, 1], then compute weighted confidence
+    /// Higher is better — 1.0 = perfect signal, 0.0 = no signal
+    pub fn weighted_confidence(&self) -> f64 {
+        let snr_norm = (self.snr_db / 10.0).clamp(0.0, 1.0);       // 10dB = perfect
+        let per_norm = (1.0 - self.packet_error_rate).clamp(0.0, 1.0); // 0% PER = perfect
+        let lat_norm = (1.0 - (self.latency_ms / 1000.0)).clamp(0.0, 1.0); // <1s = perfect
+        let var_norm = 1.0 - self.signal_variance.min(1.0);      // 0 variance = perfect
+        
+        0.4 * snr_norm + 0.3 * per_norm + 0.2 * lat_norm + 0.1 * var_norm
+    }
+}
+
+/// Agent reputation tracking via EMA with penalties and bonuses
+/// Based on zeroclaw consensus patterns
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AgentReputation {
+    pub agent_id: u64,
+    pub reputation_score: f64,      // EMA smoothed, 0.0 to 1.0
+    pub clean_streak: u32,          // Consecutive clean consensus cycles
+    pub error_count: u32,           // Consensus failures
+    pub sample_buffer: Vec<f64>,    // Circular buffer, 16 samples
+}
+
+impl AgentReputation {
+    pub fn new(agent_id: u64) -> Self {
+        Self {
+            agent_id,
+            reputation_score: 0.5, // Start neutral
+            clean_streak: 0,
+            error_count: 0,
+            sample_buffer: Vec::with_capacity(16),
+        }
+    }
+    
+    /// Update reputation based on consensus outcome
+    /// alpha=0.9 EMA smoothing, penalty on error, bonus on clean streak
+    pub fn update(&mut self, consensus_clean: bool) {
+        let delta = if consensus_clean {
+            self.clean_streak += 1;
+            0.05 * (self.clean_streak as f64).min(1.0) // bonus caps at 1.0
+        } else {
+            self.error_count += 1;
+            self.clean_streak = 0;
+            -0.10 // fixed penalty per error
+        };
+        
+        self.reputation_score = (0.9 * self.reputation_score + 0.1 * (0.5 + delta)).clamp(0.0, 1.0);
+        
+        // Circular buffer update
+        if self.sample_buffer.len() >= 16 {
+            self.sample_buffer.remove(0);
+        }
+        self.sample_buffer.push(self.reputation_score);
+    }
+}

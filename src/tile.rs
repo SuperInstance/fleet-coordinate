@@ -198,3 +198,51 @@ mod tests {
         assert!(!bounds.check_bounds(2.5001));
     }
 }
+
+// === Zeroclaw Hibernation Integration (2026-05-06) ===
+// See: /home/ubuntu/.openclaw/workspace/research/zeroclaw-hibernation-synthesis.md
+
+/// Tile hibernation states — prevents wasted consensus checks on stale tiles
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum TileHibernationState {
+    Active,
+    Hibernating,
+    WakePending,
+}
+
+impl Default for TileHibernationState {
+    fn default() -> Self {
+        Self::Active
+    }
+}
+
+/// Check if a tile should enter hibernation based on idle time
+/// 
+/// Triggers hibernation after:
+/// - 30 minutes of no new observations (from zeroclaw "Slumber" protocol)
+/// - Energy threshold: energy budget below 20%
+/// - Queue depth below 5 pending updates
+pub fn check_hibernation_trigger(
+    last_activity_timestamp: u64,
+    current_time_ms: u64,
+    energy_budget_pct: f64,
+    pending_queue_depth: usize,
+) -> bool {
+    let idle_ms = current_time_ms.saturating_sub(last_activity_timestamp);
+    let idle_threshold_ms = 30 * 60 * 1000; // 30 minutes
+    
+    idle_ms > idle_threshold_ms 
+        || energy_budget_pct < 0.20 
+        || pending_queue_depth < 5
+}
+
+/// Returns DVFS power level for tile consensus work
+/// Based on zeroclaw "Slumber" DVFS settings
+pub fn dvfs_power_level(is_idle: bool) -> (f64, f64) {
+    // (voltage_v, frequency_mhz)
+    if is_idle {
+        (0.6, 100.0)  // 0.25 mW — 75% energy reduction
+    } else {
+        (1.2, 2500.0) // 10 mW — full operation
+    }
+}

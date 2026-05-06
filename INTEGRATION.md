@@ -94,3 +94,92 @@ FM Instinct → Trust Weight → Pythagorean48 Vector → Laman Graph → ZHC Co
 ```
 
 This means: ABOracle's entire instinct architecture can be formalized as a geometric constraint satisfaction problem — no ML needed.
+---
+
+## Zeroclaw Research Integration (2026-05-06)
+
+### Source: zeroclaw logs (zc-bard, zc-tide, zc-echo)
+### Synthesized: /home/ubuntu/.openclaw/workspace/research/zeroclaw-*.md
+
+### Integration Opportunities
+
+#### 1. Hibernation Protocol → fleet-coordinate/tile.rs
+
+The "Slumber" protocol (zc-bard, tick 5922455) is directly applicable to tile state management:
+
+```
+Key insight: Tiles that go silent (no new observations) 
+are analogous to idle agents. Apply the same hibernation 
+trigger logic: 30-min idle OR queue depth < threshold.
+```
+
+**Integration path:**
+- Add `TileHibernationState` enum: `Active | Hibernating | WakePending`
+- Add `last_activity: u64` timestamp to `FleetTile`
+- Add `check_hibernation_trigger(idle_threshold_ms: u64) → bool` to tile module
+- Hibernating tiles still occupy graph topology (important for Laman rigidity) but skip consensus checks
+- Wake on: new tile observation, explicit ping, or periodic refresh tick
+
+**Best technical decisions to carry forward:**
+- LZ77 compression for checkpoint (3:1 ratio empirically grounded)
+- 10-minute checkpoint interval
+- Circular buffer: 10 checkpoints max, FNV-1a checksum
+- DVFS idle: Vcore=0.6V, Freq=100MHz (0.25mW idle power)
+- Hibernation trigger: 30 min idle OR energy threshold 20%
+
+**Source:** `zeroclaw-hibernation-synthesis.md`
+
+#### 2. Confidence Aggregation → fleet-coordinate/emergence.rs
+
+The weighted confidence formula from zc-tide synthesis:
+```
+weighted_confidence = 0.4×SNR + 0.3×PER + 0.2×latency + 0.1×variance
+```
+
+Is directly mappable to `EmergenceResult.confidence`:
+- Current: `confidence = 1 - (H¹/V)` — purely structural
+- Enhanced: Layer SNR/PER/latency signals beneath the structural score
+
+**Integration path:**
+- Add `ConfidenceSignals` struct: `{ snr_db: f64, packet_error_rate: f64, latency_ms: f64, signal_variance: f64 }`
+- Extend `EmergenceResult` with weighted confidence that combines structural (β₁) + empirical signals
+- This gives emergence detection both topological AND behavioral grounding
+
+**Reputation system from zc-echo synthesis:**
+- EMA with α=0.9 for agent reputation (smoothing over transient failures)
+- Penalties on consensus failures, bonuses on clean streaks
+- 16-sample circular buffer for agent accuracy tracking
+
+**Source:** `zeroclaw-confidence-synthesis.md`
+
+#### 3. Capability-Based Access → cocapn-glue-core/rust/src/lib.rs
+
+The blast radius containment strategy from zc-tide synthesis:
+```
+CFALP protocol: 4-byte header, 1024B max payload, CRC-16
+ECDH key exchange + AES-256-CBC encryption
+Hierarchical 16-bit agent IDs for blast radius tracking
+```
+
+**Integration path:**
+- Extend `ZhcClient` with capability token validation
+- Add `BlastRadiusTracker`: monitors connected agent count, isolates when threshold exceeded
+- Add `CapabilityToken` struct with 256-bit token format (resource_id + permissions + expiry + HMAC)
+- P2→P1 detection: SNR + PER + signal variance with hysteresis — maps to tile quality signals
+
+**Source:** `zeroclaw-capability-access-synthesis.md`
+
+### Unique Ideas to Salvage (single-appearance, high value)
+
+| Idea | Source | Value |
+|------|--------|-------|
+| Context fingerprint via Word2Vec (16 bytes) | tick 5922487 | Ultra-light hibernation for constrained agents |
+| Three-tier cache hierarchy (T1:128B, T2:4KB, T3:128KB) | tick 5922527 | Tile hot/warm/cold storage strategy |
+| Sentinel agent pattern | tick 5922559 | One low-power agent monitors cluster for wake signals |
+| Power-gating to 10μW with 32kHz crystal oscillator | tick 5922463 | Hardware-level idle for edge devices |
+| Power-gating to 10μW with 32kHz oscillator wake timer | tick 5922463 | Hardware-level idle for edge devices |
+
+### Notes
+- Carbon footprint calculations in zeroclaw-hibernation-synthesis.md have 200,000x variance — do not use without empirical baseline
+- Wake-up time ranges from 20ms to 1s across iterations — define "wake-up" before implementing
+- zc-warden and zc-healer jsonl files not found in expected path; warden/healer synthesis from alternative sources
