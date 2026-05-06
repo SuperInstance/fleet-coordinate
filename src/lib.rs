@@ -14,6 +14,7 @@ pub mod graph;
 pub mod tile;
 pub mod emergence;
 pub mod integration;
+pub mod crystal_sync;
 
 // Re-export the primary types
 pub use zhc::{ZhcConsensus, ConsensusResult};
@@ -23,6 +24,7 @@ pub use graph::{FleetGraph, RigidityResult};
 pub use tile::{FleetTile, TileCoordination};
 pub use emergence::{EmergenceDetector, EmergenceResult};
 pub use integration::{FleetCoordinate, Config};
+pub use crystal_sync::{PhaseSync, PhaseMonitor, TempoReale, CrystalInfo};
 
 /// Maximum neighbors for rigidity (Laman's theorem: 2V-3)
 pub const MAX_RIGID_NEIGHBORS: usize = 12;
