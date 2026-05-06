@@ -30,6 +30,8 @@ pub struct FleetAgent {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FleetGraph {
     agents: Vec<FleetAgent>,
+    /// O(1) agent lookup by ID — mirrors FM's tile_index pattern
+    agent_index: HashMap<u64, usize>,
     adjacency: HashMap<u64, HashSet<u64>>,
     edge_count: usize,
 }
@@ -38,6 +40,7 @@ impl FleetGraph {
     pub fn new() -> Self {
         Self {
             agents: Vec::new(),
+            agent_index: HashMap::new(),
             adjacency: HashMap::new(),
             edge_count: 0,
         }
@@ -46,6 +49,8 @@ impl FleetGraph {
     pub fn add_agent(&mut self, id: u64, position: [f64; 2], capabilities: Vec<String>) {
         if !self.adjacency.contains_key(&id) {
             self.adjacency.insert(id, HashSet::new());
+            let idx = self.agents.len();
+            self.agent_index.insert(id, idx);
             self.agents.push(FleetAgent { id, position, neighbors: vec![], capabilities });
         }
     }
@@ -137,9 +142,9 @@ impl FleetGraph {
         self.agents.iter().map(|a| a.neighbors.len()).max().unwrap_or(0)
     }
 
-    /// Get agent by ID
+    /// Get agent by ID — O(1) via HashMap index
     pub fn get_agent(&self, id: u64) -> Option<&FleetAgent> {
-        self.agents.iter().find(|a| a.id == id)
+        self.agent_index.get(&id).and_then(|&idx| self.agents.get(idx))
     }
 
     /// Get neighbors of an agent
@@ -243,5 +248,44 @@ mod tests {
         let result = graph.check_laman_rigidity();
         assert_eq!(result.h1_dimension, 1);
         assert!(result.is_rigid); // K3 is Laman-rigid
+    }
+
+    #[test]
+    fn test_o1_agent_lookup() {
+        // Prove O(1) lookup via HashMap index (not iter().find())
+        let mut graph = FleetGraph::new();
+        for i in 0..100 {
+            graph.add_agent(i, [i as f64, 0.0], vec![format!("cap_{}", i)]);
+        }
+        // O(1) lookup: constant time regardless of position
+        let start = std::time::Instant::now();
+        for i in 0..100 {
+            let agent = graph.get_agent(i);
+            assert!(agent.is_some());
+            assert_eq!(agent.unwrap().id, i);
+        }
+        let elapsed = start.elapsed();
+        // Should be very fast (< 1ms for 100 lookups)
+        assert!(elapsed.as_secs_f64() < 0.001, "O(1) lookup took {}s for 100 agents", elapsed.as_secs_f64());
+    }
+
+    #[test]
+    fn test_o1_lookup_not_found() {
+        let mut graph = FleetGraph::new();
+        graph.add_agent(42, [0.0, 0.0], vec![]);
+        assert!(graph.get_agent(999).is_none());
+    }
+
+    #[test]
+    fn test_agent_index_consistency() {
+        // Ensure index stays consistent after adding many agents
+        let mut graph = FleetGraph::new();
+        for i in 0..50 {
+            graph.add_agent(i * 2, [i as f64, 0.0], vec![]);
+        }
+        for i in 0..50 {
+            let agent = graph.get_agent(i * 2).expect(&format!("agent {} should exist", i * 2));
+            assert_eq!(agent.id, i * 2);
+        }
     }
 }

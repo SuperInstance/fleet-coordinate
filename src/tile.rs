@@ -2,6 +2,39 @@
 
 use serde::{Deserialize, Serialize};
 
+/// TileBounds — encodes Laman threshold into tile geometry.
+/// Inspired by FM's HolonomyBounds in holonomy-consensus/src/constraints.rs.
+/// A tile that exceeds its deviation bound is a constraint violation.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TileBounds {
+    /// Maximum deviation from equilibrium position
+    pub max_deviation: f64,
+    /// Cycles before rechecking
+    pub max_age: u32,
+    /// Minimum neighbors that must agree (Laman threshold: 2v'-3 per subgraph)
+    pub min_agreement: usize,
+}
+
+impl TileBounds {
+    pub fn new(max_deviation: f64, max_age: u32, min_agreement: usize) -> Self {
+        Self { max_deviation, max_age, min_agreement }
+    }
+
+    /// Check if a given deviation is within bounds
+    pub fn check_bounds(&self, deviation: f64) -> bool {
+        deviation <= self.max_deviation
+    }
+
+    /// Default bounds for fleet tiles
+    pub fn default_fleet() -> Self {
+        Self {
+            max_deviation: 1.0,
+            max_age: 100,
+            min_agreement: 3, // minimum agents for Laman-rigid subgraph
+        }
+    }
+}
+
 /// A PLATO tile forwarded through the fleet
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FleetTile {
@@ -132,5 +165,36 @@ mod tests {
         coord.mark_consensus("Q1?");
         assert_eq!(coord.consensus_tiles.len(), 1);
         assert_eq!(coord.pending_tiles.len(), 1);
+    }
+
+    #[test]
+    fn test_tilebounds_check_bounds() {
+        let bounds = TileBounds::new(1.0, 100, 3);
+        assert!(bounds.check_bounds(0.5));
+        assert!(bounds.check_bounds(1.0));
+        assert!(!bounds.check_bounds(1.1));
+    }
+
+
+    #[test]
+    fn test_tilebounds_default_fleet() {
+        let bounds = TileBounds::default_fleet();
+        assert!(bounds.check_bounds(0.5));
+        assert_eq!(bounds.max_age, 100);
+        assert_eq!(bounds.min_agreement, 3);
+    }
+
+    #[test]
+    fn test_tilebounds_zero_deviation() {
+        let bounds = TileBounds::new(0.0, 50, 5);
+        assert!(bounds.check_bounds(0.0));
+        assert!(!bounds.check_bounds(0.001));
+    }
+
+    #[test]
+    fn test_tilebounds_exactly_at_bound() {
+        let bounds = TileBounds::new(2.5, 200, 4);
+        assert!(bounds.check_bounds(2.5));
+        assert!(!bounds.check_bounds(2.5001));
     }
 }

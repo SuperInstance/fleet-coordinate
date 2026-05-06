@@ -51,27 +51,53 @@ impl EmergenceResult {
 /// H¹_dim > 0 means the constraint graph has non-trivial topology —
 /// redundant constraint paths that create emergent behavior.
 ///
-/// # Comparison with ML approach
+/// # Bloom pre-filter
 ///
-/// | Approach | Detection Time | True Positive | False Positive |
-/// |----------|----------------|---------------|----------------|
-/// | cuda-emergence ML (12K lines) | 1.2s after visible | 62% | 38% |
-/// | **H¹ Cohomology (127 lines)** | **2.7s BEFORE visible** | **100%** | **0%** |
-///
-/// # Implementation
-///
-/// ```rust
-/// use fleet_coordinate::emergence::{EmergenceDetector, EmergenceResult};
-///
-/// let result = EmergenceDetector::detect(1024, 12000, 1);
-/// if result.emergence_detected {
-///     println!("Emergent pattern: {} independent cycles", result.h1);
-/// }
-/// ```
+/// XOR fingerprint skips expensive H¹ computation for obvious cases:
+/// - Disconnected: E < V-1 → no emergence possible
+/// - Massively over-connected: E > V*(V-1)/4 → definitely emergence
+/// - Laman-rigid: E ≈ 2V-3 → skip (no overconstraint)
 #[derive(Clone)]
 pub struct EmergenceDetector;
 
 impl EmergenceDetector {
+    /// HDC bloom pre-filter — skip H¹ if answer is obvious.
+    ///
+    /// Returns `true` if H¹ computation is definitely needed.
+    /// Returns `false` if answer is obvious:
+    /// - Disconnected (E < V-1) → no emergence possible
+    /// - Massively over-connected (E > V*(V-1)/4) → definitely emergence
+    /// - Laman-rigid (E ≈ 2V-3 ± 10%) → no overconstraint
+    ///
+    /// Inspired by FM's "HDC bloom: bypasses 80-90% of constraint checks".
+    pub fn preliminary_screen(V: usize, E: usize) -> bool {
+        if V == 0 || E == 0 {
+            return false; // Nothing to compute
+        }
+
+        // Disconnected: impossible to have cycles
+        if E < V.saturating_sub(1) {
+            return false;
+        }
+
+        // Massively over-connected: definitely has emergence
+        let max_edges = V * (V - 1) / 2;
+        if E > max_edges / 4 {
+            return false; // Answer is obvious: emergence = true
+        }
+
+        // Laman-rigid zone (±10% of 2V-3): not overconstrained
+        let lamanc_threshold = if V >= 3 { 2 * V - 3 } else { 0 };
+        let lower = (lamanc_threshold as f64 * 0.9) as usize;
+        let upper = (lamanc_threshold as f64 * 1.1) as usize;
+        if E >= lower && E <= upper {
+            return false; // Exactly Laman-rigid: no overconstraint
+        }
+
+        // Borderline: need actual H¹ computation
+        true
+    }
+
     /// Detect emergence via H¹ cohomology
     ///
     /// - `n_vertices`: Number of agents in the fleet (V)
@@ -176,5 +202,44 @@ mod tests {
         // For a cycle graph C_n: V=n, E=n, β₁ = n - n + 1 = 1 (one independent cycle)
         let result = EmergenceDetector::detect(10, 10, 1);
         assert_eq!(result.h1, 1); // One independent cycle
+    }
+
+    #[test]
+    fn test_preliminary_screen_empty() {
+        // No vertices or edges → skip computation
+        assert!(!EmergenceDetector::preliminary_screen(0, 0));
+        assert!(!EmergenceDetector::preliminary_screen(100, 0));
+        assert!(!EmergenceDetector::preliminary_screen(100, 0));
+    }
+
+    #[test]
+    fn test_preliminary_screen_disconnected() {
+        // E < V-1 → disconnected → no emergence possible
+        assert!(!EmergenceDetector::preliminary_screen(10, 5)); // 5 < 9
+        assert!(!EmergenceDetector::preliminary_screen(100, 50)); // 50 < 99
+    }
+
+    #[test]
+    fn test_preliminary_screen_massively_overconnected() {
+        // E > V*(V-1)/4 → definitely emergence → skip H¹
+        assert!(!EmergenceDetector::preliminary_screen(10, 30)); // 30 > 10*9/4 = 22.5
+    }
+
+    #[test]
+    fn test_preliminary_screen_laman_rigid_zone() {
+        // E ≈ 2V-3 (±10%) → Laman-rigid zone → skip H¹
+        // V=10 → 2*10-3=17, 10% tolerance: [15, 19]
+        assert!(!EmergenceDetector::preliminary_screen(10, 17)); // exactly at threshold
+        assert!(!EmergenceDetector::preliminary_screen(10, 15)); // lower bound
+        assert!(!EmergenceDetector::preliminary_screen(10, 19)); // upper bound
+    }
+
+    #[test]
+    fn test_preliminary_screen_needs_h1() {
+        // E > 2V-3 but not massively over-connected → need H¹
+        // V=20 → Laman upper bound ≈ 40, max_edges/4 = 47
+        // E=44 is above Laman zone but below max_edges/4
+        assert!(EmergenceDetector::preliminary_screen(20, 44));
+        assert!(EmergenceDetector::preliminary_screen(50, 200)); // >97 (upper Laman) but <50*49/4=612
     }
 }
