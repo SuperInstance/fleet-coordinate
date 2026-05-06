@@ -1,4 +1,5 @@
-//! H¹ Emergence Detection — 127 lines replacing 12,000-line ML model
+//! H¹ Emergence Detection
+//! Detects over-constrained fleet graphs via Betti number β₁ = E-V+1.
 //!
 //! JC1's cuda-emergence used 12,000 lines of PyTorch ML to detect fleet-wide
 //! emergent patterns. It achieved 62% true positive rate.

@@ -77,8 +77,8 @@ impl FleetCoordinate {
             zhc_consensus,
             emergence: emergence.clone(),
             config: self.config.clone(),
-            synthesis_theorem: SynthesisTheoremResult {
-                is_self_coordinating: is_self,
+            fleet_theorem: FleetTheoremResult {
+                is_laman_rigid: is_self,
                 requires_voting: false,
                 requires_central_coordinator: false,
                 drift_free: true,
@@ -126,13 +126,14 @@ pub struct FleetAnalysisReport {
     pub zhc_consensus: crate::zhc::ConsensusResult,
     pub emergence: EmergenceResult,
     pub config: Config,
-    pub synthesis_theorem: SynthesisTheoremResult,
+    pub fleet_theorem: FleetTheoremResult,
 }
 
-/// Result of the synthesis theorem
+/// Result of the Fleet Coordinate Theorem (provisional)
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SynthesisTheoremResult {
-    pub is_self_coordinating: bool,
+pub struct FleetTheoremResult {
+    pub is_laman_rigid: bool,
+    /// True if the fleet has geometric consistency (ZHC closure satisfied)
     pub requires_voting: bool,
     pub requires_central_coordinator: bool,
     pub drift_free: bool,
@@ -152,7 +153,7 @@ mod tests {
         fleet.add_trust_edge(2, 3);
         fleet.add_trust_edge(3, 1);
         let report = fleet.analyze();
-        assert!(report.synthesis_theorem.is_self_coordinating);
+        assert!(report.fleet_theorem.is_laman_rigid);
     }
 
     #[test]

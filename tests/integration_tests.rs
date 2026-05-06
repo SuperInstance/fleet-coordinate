@@ -10,7 +10,7 @@ fn test_three_agent_triangle_self_coordinating() {
     fleet.add_trust_edge(2, 3);
     fleet.add_trust_edge(3, 1);
     let report = fleet.analyze();
-    assert!(report.synthesis_theorem.is_self_coordinating);
+    assert!(report.fleet_theorem.is_laman_rigid);
 }
 
 #[test]

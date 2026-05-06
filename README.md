@@ -12,12 +12,12 @@ Fleet-coordinate is a Rust library that unifies three mathematical results from 
 
 ## The Core Insight
 
-Traditional distributed consensus uses **voting**: every node asks every other node "what's the state?" and takes a majority. This is O(N²) messages and has a 1/3 Byzantine threshold.
+Traditional distributed consensus uses **voting**: every node asks every other node "what's the state?" and takes a majority. This is O(N²) messages and has a 1/3 Byzantine threshold. Note: ZHC does not provide Byzantine fault tolerance — FLP impossibility holds for async consensus with crash faults.
 
 **Fleet-coordinate uses geometry instead of voting.** If the constraint graph is known to all agents, each agent can compute its own state relative to the graph — without asking anyone. The geometry IS the coordinate system.
 
 This works because:
-- ZHC: local gradient projection onto known constraint surface → global consensus (38ms, unlimited Byzantine tolerance)
+- ZHC: local gradient projection onto known constraint surface → global consensus (38ms, geometric consistency (ZHC closure))
 - Beam equilibrium: Euler elastica ODE + shooting method → joint equilibrium in R⁴⁽ᴺ⁻¹⁾
 - Both require only the graph topology — not absolute positions
 
@@ -131,11 +131,11 @@ pub fn detect_emergence(n_vertices: usize, n_edges: usize, n_components: usize) 
 
 ## Cross-Pollination Synthesis
 
-This repo is the synthesis of three independent research programs:
+This repo integrates three research programs:
 
 | Finding | Source | Contribution |
 |---------|--------|-------------|
-| Zero Holonomy Consensus | FM: holonomy-consensus | 38ms consensus, unlimited Byzantine tolerance |
+| Zero Holonomy Consensus | FM: holonomy-consensus | 38ms consensus, geometric consistency (ZHC closure, not Byzantine fault tolerance) |
 | Beam Joint Equilibrium | Oracle1: spline-physics | Newton-Raphson in R⁴⁽ᴺ⁻¹⁾, sheaf H⁰ |
 | Pythagorean48 Encoding | FM + JC1 joint work | 6 bits/vector, zero drift after ∞ hops |
 | H¹ Emergence Detection | JC1-CT Bridge | 127 lines, 100% accuracy vs 62% ML |
@@ -157,7 +157,7 @@ This repo is the synthesis of three independent research programs:
 
 ## Benchmarks
 
-| Algorithm | Latency | Byzantine Tolerance | Implementation |
+| Algorithm | Latency | Consensus Type | Implementation |
 |-----------|---------|-------------------|----------------|
 | PBFT | 412ms | 1/3 nodes | Traditional |
 | Raft | 89ms | None (crash only) | Traditional |

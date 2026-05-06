@@ -6,7 +6,9 @@
 //!
 //! Key properties:
 //! - O(1) messages per round (vs O(N²) for PBFT)
-//! - Unlimited Byzantine tolerance (vs 1/3 for PBFT)
+//! - ZHC geometric consistency: closed loops sum to identity
+//! - Note: ZHC is NOT Byzantine fault tolerance. FLP (1985) shows no deterministic
+//!   async consensus with crash faults. ZHC provides a geometric invariant, not consensus.
 //! - 38ms latency (vs 412ms for PBFT @ 10 nodes)
 //!
 //! The mathematical basis: Holonomy around any closed loop in the constraint
