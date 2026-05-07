@@ -350,6 +350,8 @@ dependencies = [
 [[package]]
 name = "pythagorean48-codes"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "900f572ac15eaa65ae5c0fb846e349f4db6881bac67eafb2d2c114ff74c564d3"
 dependencies = [
  "serde",
 ]
