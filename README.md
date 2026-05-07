@@ -1,5 +1,7 @@
 # fleet-coordinate
 
+[![CI](https://github.com/SuperInstance/fleet-coordinate/actions/workflows/ci.yml/badge.svg)](https://github.com/SuperInstance/fleet-coordinate/actions/workflows/ci.yml)
+
 **Geometric constraint satisfaction for fleet coordination — zero voting, zero drift, proven convergence.**
 
 Fleet-coordinate is a Rust library that unifies three mathematical results from the SuperInstance fleet mathematics program:
