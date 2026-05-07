@@ -52,8 +52,6 @@ pub use crystal_sync::{PhaseSync, PhaseMonitor, TempoReale, CrystalInfo};
 /// let monitor = PhaseMonitor::new(0.010);
 /// let rate = monitor.correction_rate(0, offset, 1000);
 /// assert!(monitor.threshold_breach(rate), "100 ppm drift should breach threshold");
-/// ```
-
 pub const MAX_RIGID_NEIGHBORS: usize = 12;
 
 /// Information content per trust vector (log₂ 48 ≈ 5.585 bits)

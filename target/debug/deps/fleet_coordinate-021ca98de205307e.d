@@ -13,5 +13,5 @@ src/integration.rs:
 src/crystal_sync.rs:
 Cargo.toml:
 
-# env-dep:CLIPPY_ARGS=-W__CLIPPY_HACKERY__clippy::all__CLIPPY_HACKERY__
+# env-dep:CLIPPY_ARGS=
 # env-dep:CLIPPY_CONF_DIR
