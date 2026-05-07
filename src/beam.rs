@@ -92,6 +92,8 @@ pub struct SegmentConfig {
 }
 
 impl SegmentConfig {
+    /// Flexural rigidity — math notation EI
+    #[allow(non_snake_case)]
     pub fn EI(&self) -> f64 {
         self.material.youngs_modulus * 1e3 * self.section.ix // N·mm²
     }
@@ -125,6 +127,7 @@ impl MultiSegmentBeam {
 /// Joint state vector — the R⁴ × 2 compatibility vector
 /// (T, M, y, θ) at left side and right side of one joint
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[allow(non_snake_case)]
 pub struct JointState {
     pub T_left: f64,  pub M_left: f64,  pub y_left: f64,  pub theta_left: f64,
     pub T_right: f64, pub M_right: f64, pub y_right: f64, pub theta_right: f64,
@@ -222,24 +225,24 @@ impl BeamSolver {
                 // Simplified: use Euler elastica linear approximation
                 // In full implementation: shooting method integration
                 let q = beam.distributed_load;
-                let L_left = seg_left.length;
-                let L_right = seg_right.length;
-                let EI_left = seg_left.EI();
-                let EI_right = seg_right.EI();
+                let l_left = seg_left.length;
+                let l_right = seg_right.length;
+                let ei_left = seg_left.EI();
+                let ei_right = seg_right.EI();
 
                 // Linear approximation for demonstration:
                 // M at joint = q * L² / 8 for simply supported
-                let M_joint_left = 0.125 * q * L_left * L_left;
-                let M_joint_right = 0.125 * q * L_right * L_right;
+                let m_joint_left = 0.125 * q * l_left * l_left;
+                let m_joint_right = 0.125 * q * l_right * l_right;
 
-                states[j].M_left = M_joint_left;
-                states[j].M_right = M_joint_right;
-                states[j].T_left = q * L_left / 2.0;
-                states[j].T_right = q * L_right / 2.0;
+                states[j].M_left = m_joint_left;
+                states[j].M_right = m_joint_right;
+                states[j].T_left = q * l_left / 2.0;
+                states[j].T_right = q * l_right / 2.0;
                 states[j].y_left = 0.0;
                 states[j].y_right = 0.0;
-                states[j].theta_left = M_joint_left * L_left / (3.0 * EI_left);
-                states[j].theta_right = M_joint_right * L_right / (3.0 * EI_right);
+                states[j].theta_left = m_joint_left * l_left / (3.0 * ei_left);
+                states[j].theta_right = m_joint_right * l_right / (3.0 * ei_right);
 
                 total_residual_norm += states[j].residual_norm();
             }

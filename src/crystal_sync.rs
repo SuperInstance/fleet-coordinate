@@ -139,7 +139,7 @@ impl PhaseSync {
     pub fn zhc_loop_sum(&self) -> u8 {
         // Mock: use the phase offset's absolute value as the direction magnitude.
         // In a real implementation this would map offsets to Dir48 sectors.
-        let mag = self.crystal.phase_offset().abs() as u32;
+        let mag = self.crystal.phase_offset().unsigned_abs();
         (mag % 256) as u8
     }
 }
@@ -211,8 +211,6 @@ pub struct TempoReale {
     offsets: HashMap<u64, i64>,
     /// Currently elected leader agent ID
     leader: Option<u64>,
-    /// Map from agent ID to coherence score
-    coherence_scores: HashMap<u64, f64>,
 }
 
 impl TempoReale {
@@ -221,7 +219,6 @@ impl TempoReale {
         Self {
             offsets: HashMap::new(),
             leader: None,
-            coherence_scores: HashMap::new(),
         }
     }
 

@@ -56,7 +56,7 @@ impl FleetCoordinate {
 
     pub fn add_agent(&mut self, id: u64, position: [f64; 2], capabilities: Vec<String>) {
         self.graph.add_agent(id, position, capabilities);
-        self.zhc.add_tile(id, [position[0] as f64, position[1] as f64, 0.0], vec![]);
+        self.zhc.add_tile(id, [position[0], position[1], 0.0], vec![]);
     }
 
     pub fn add_trust_edge(&mut self, a: u64, b: u64) {

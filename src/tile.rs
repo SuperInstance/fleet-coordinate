@@ -203,17 +203,12 @@ mod tests {
 // See: /home/ubuntu/.openclaw/workspace/research/zeroclaw-hibernation-synthesis.md
 
 /// Tile hibernation states — prevents wasted consensus checks on stale tiles
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub enum TileHibernationState {
+    #[default]
     Active,
     Hibernating,
     WakePending,
-}
-
-impl Default for TileHibernationState {
-    fn default() -> Self {
-        Self::Active
-    }
 }
 
 /// Check if a tile should enter hibernation based on idle time

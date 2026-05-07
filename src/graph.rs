@@ -47,8 +47,8 @@ impl FleetGraph {
     }
 
     pub fn add_agent(&mut self, id: u64, position: [f64; 2], capabilities: Vec<String>) {
-        if !self.adjacency.contains_key(&id) {
-            self.adjacency.insert(id, HashSet::new());
+        if let std::collections::hash_map::Entry::Vacant(e) = self.adjacency.entry(id) {
+            e.insert(HashSet::new());
             let idx = self.agents.len();
             self.agent_index.insert(id, idx);
             self.agents.push(FleetAgent { id, position, neighbors: vec![], capabilities });
@@ -82,10 +82,14 @@ impl FleetGraph {
         }
     }
 
+    /// Number of vertices — math notation V
+    #[allow(non_snake_case)]
     pub fn V(&self) -> usize {
         self.agents.len()
     }
 
+    /// Number of edges — math notation E
+    #[allow(non_snake_case)]
     pub fn E(&self) -> usize {
         self.edge_count
     }
@@ -97,16 +101,17 @@ impl FleetGraph {
     /// 2. Every subgraph with v' vertices has E' ≤ 2v' - 3
     ///
     /// For small graphs (V < 3), just check main condition.
+    #[allow(non_snake_case)]
     pub fn check_laman_rigidity(&self) -> RigidityResult {
-        let V = self.V();
-        let E = self.E();
+        let v = self.V();
+        let e = self.E();
 
         // Condition 1: E = 2V - 3 (with tolerance for small graphs)
-        let expected_E = 2 * V - 3;
-        let e_ratio = if expected_E > 0 { E as f64 / expected_E as f64 } else { 1.0 };
+        let expected_e = 2 * v - 3;
+        let e_ratio = if expected_e > 0 { e as f64 / expected_e as f64 } else { 1.0 };
 
         // For V < 3, skip subgraph check (triangle is minimum rigid structure)
-        let subgraph_check = if V < 3 {
+        let subgraph_check = if v < 3 {
             true
         } else {
             let mut ok = true;
@@ -124,14 +129,14 @@ impl FleetGraph {
         let is_rigid = (e_ratio - 1.0).abs() < 0.05 && subgraph_check; // 5% tolerance
         
         // Betti number β₁ = E - V + C (number of independent cycles)
-        let H1 = if E >= V { E - V + 1 } else { 0 };
+        let h1 = if e >= v { e - v + 1 } else { 0 };
 
         RigidityResult {
             is_rigid,
-            V,
-            E,
-            expected_E,
-            h1_dimension: H1,
+            V: v,
+            E: e,
+            expected_E: expected_e,
+            h1_dimension: h1,
             critical_subgraphs: vec![],
             max_neighbors: self.agents.iter().map(|a| a.neighbors.len()).max().unwrap_or(0),
         }
@@ -164,8 +169,14 @@ impl Default for FleetGraph {
 pub struct RigidityResult {
     /// True if graph is generically rigid (2D)
     pub is_rigid: bool,
+    /// Number of vertices — math notation V
+    #[allow(non_snake_case)]
     pub V: usize,
+    /// Number of edges — math notation E
+    #[allow(non_snake_case)]
     pub E: usize,
+    /// Expected edge count for Laman rigidity (2V-3)
+    #[allow(non_snake_case)]
     pub expected_E: usize,
     /// H¹ dimension = number of independent cycles
     pub h1_dimension: usize,
