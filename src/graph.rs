@@ -14,6 +14,7 @@
 //! H¹ dimension = number of independent cycles = number of redundant
 //! constraint paths = "emergence" in the network.
 
+#![allow(non_snake_case)]
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -47,8 +48,8 @@ impl FleetGraph {
     }
 
     pub fn add_agent(&mut self, id: u64, position: [f64; 2], capabilities: Vec<String>) {
-        if !self.adjacency.contains_key(&id) {
-            self.adjacency.insert(id, HashSet::new());
+        if let std::collections::hash_map::Entry::Vacant(e) = self.adjacency.entry(id) {
+            e.insert(HashSet::new());
             let idx = self.agents.len();
             self.agent_index.insert(id, idx);
             self.agents.push(FleetAgent { id, position, neighbors: vec![], capabilities });

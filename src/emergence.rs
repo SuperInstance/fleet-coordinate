@@ -11,6 +11,7 @@
 //!
 //! This is not a heuristic. It's a theorem from algebraic topology.
 
+#![allow(non_snake_case)]
 use serde::{Deserialize, Serialize};
 
 /// Result of emergence detection via cohomology

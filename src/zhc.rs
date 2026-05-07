@@ -133,10 +133,6 @@ impl ZhcConsensus {
     }
 
     /// O(1) tile lookup by ID
-    fn get_tile(&self, id: u64) -> Option<&ZhcTile> {
-        self.tiles.get(&id)
-    }
-
     /// Run one round of ZHC consensus
     ///
     /// Unlike PBFT (which requires O(N²) message exchanges), ZHC runs

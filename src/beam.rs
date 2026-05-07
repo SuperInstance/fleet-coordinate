@@ -10,6 +10,7 @@
 //! This module re-uses the multi_segment module from spline-physics via
 //! the multi_agent/joint_debate module.
 
+#![allow(non_snake_case)]
 use serde::{Deserialize, Serialize};
 
 // =====================================================================
