@@ -70,6 +70,7 @@ impl EmergenceDetector {
     /// - Laman-rigid (E ≈ 2V-3 ± 10%) → no overconstraint
     ///
     /// Inspired by FM's "HDC bloom: bypasses 80-90% of constraint checks".
+    #[allow(non_snake_case)]
     pub fn preliminary_screen(V: usize, E: usize) -> bool {
         if V == 0 || E == 0 {
             return false; // Nothing to compute
@@ -137,6 +138,7 @@ impl EmergenceDetector {
     }
 
     /// Detect from a fleet graph
+    #[allow(non_snake_case)]
     pub fn detect_graph<V: Into<usize>, E: Into<usize>>(V: V, E: E) -> EmergenceResult {
         Self::detect(V.into(), E.into(), 1)
     }
@@ -179,6 +181,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(non_snake_case)]
     fn test_laman_rigid_boundary() {
         // Laman-rigid: E = 2V-3 → exactly rigid, no overconstraint → no emergence
         for V in [3, 5, 10, 50] {

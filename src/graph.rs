@@ -166,17 +166,12 @@ impl Default for FleetGraph {
 
 /// Result of rigidity analysis
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[allow(non_snake_case)]
 pub struct RigidityResult {
     /// True if graph is generically rigid (2D)
     pub is_rigid: bool,
-    /// Number of vertices — math notation V
-    #[allow(non_snake_case)]
     pub V: usize,
-    /// Number of edges — math notation E
-    #[allow(non_snake_case)]
     pub E: usize,
-    /// Expected edge count for Laman rigidity (2V-3)
-    #[allow(non_snake_case)]
     pub expected_E: usize,
     /// H¹ dimension = number of independent cycles
     pub h1_dimension: usize,
