@@ -1,5 +1,15 @@
 # fleet-coordinate
 
+
+## Meta
+
+**Domain:** constraint-theory
+**Depends on:** holonomy-consensus
+**Depended by:** fleet-spread, fleet-topology, fleet-homology, fleet-manifest, fleet-keel
+**Implements:** laman-rigidity, h1-detection, trust-graph
+**Related:** holonomy-consensus, constraint-theory-ecosystem
+
+
 [![CI](https://github.com/SuperInstance/fleet-coordinate/actions/workflows/ci.yml/badge.svg)](https://github.com/SuperInstance/fleet-coordinate/actions/workflows/ci.yml)
 
 **Fleet coordination that can't drift, can't emerge, and doesn't need a vote.**
